@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { CategoryRoutes } from '../modules/category/category.route';
+import { InvoiceRoutes } from '../modules/invoice/invoice.route';
+import { PaymentRoutes } from '../modules/payment/payment.route';
 import { ServiceReportRoutes } from '../modules/serviceReport/serviceReport.route';
 import { ServiceRequestRoutes } from '../modules/serviceRequest/serviceRequest.route';
 import { TechnicianRoutes } from '../modules/technician/technician.route';
@@ -37,6 +39,14 @@ const moduleRoutes = [
   {
     path: '/service-reports',
     route: ServiceReportRoutes,
+  },
+  {
+    path: '/invoices',
+    route: InvoiceRoutes,
+  },
+  {
+    path: '/payments',
+    route: PaymentRoutes,
   },
 ];
 
