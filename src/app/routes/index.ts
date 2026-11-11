@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import { AdminRoutes } from '../modules/admin/admin.route';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { CategoryRoutes } from '../modules/category/category.route';
 import { InvoiceRoutes } from '../modules/invoice/invoice.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
+import { ReviewRoutes } from '../modules/review/review.route';
 import { ServiceReportRoutes } from '../modules/serviceReport/serviceReport.route';
 import { ServiceRequestRoutes } from '../modules/serviceRequest/serviceRequest.route';
 import { TechnicianRoutes } from '../modules/technician/technician.route';
@@ -47,6 +49,14 @@ const moduleRoutes = [
   {
     path: '/payments',
     route: PaymentRoutes,
+  },
+  {
+    path: '/reviews',
+    route: ReviewRoutes,
+  },
+  {
+    path: '/admin',
+    route: AdminRoutes,
   },
 ];
 
