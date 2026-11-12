@@ -4,6 +4,7 @@ import express, { Application, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './app/docs/swagger.json';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
@@ -35,20 +36,10 @@ app.use(
   }),
 );
 
-const emptySwaggerDoc = {
-  openapi: '3.0.0',
-  info: {
-    title: 'Field Service Management System API',
-    version: '1.0.0',
-    description: 'REST API documentation for Field Service Management System (FSMS)',
-  },
-  paths: {},
-};
-
 app.use(
   '/api-docs',
   swaggerUi.serve,
-  swaggerUi.setup(emptySwaggerDoc, {
+  swaggerUi.setup(swaggerDocument, {
     customCssUrl:
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css',
     customJs: [

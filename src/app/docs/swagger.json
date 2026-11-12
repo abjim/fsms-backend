@@ -1,0 +1,766 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Field Service Management System (FSMS) API",
+    "version": "1.0.0",
+    "description": "Comprehensive RESTful API for Field Service Management System with technician dispatching, conflict prevention, SSLCommerz payment processing and audit logging."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API v1 Endpoint"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new customer or technician",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Farhan Ahmed" },
+                  "email": { "type": "string", "example": "customer@fsms.com" },
+                  "password": { "type": "string", "example": "Customer@123" },
+                  "phone": { "type": "string", "example": "01722334455" },
+                  "address": { "type": "string", "example": "Banani, Dhaka" },
+                  "role": { "type": "string", "enum": ["CUSTOMER", "TECHNICIAN"], "example": "CUSTOMER" },
+                  "city": { "type": "string", "example": "Dhaka" },
+                  "skills": { "type": "array", "items": { "type": "string" }, "example": ["HVAC", "Electrical"] },
+                  "hourlyRate": { "type": "number", "example": 500 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "400": { "description": "Validation failed" },
+          "409": { "description": "User already exists with this email" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate user with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@fsms.com" },
+                  "password": { "type": "string", "example": "Admin@1234" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User logged in successfully" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/auth/refresh-token": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Obtain new access token using refresh token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Access token generated successfully" }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Change current user password",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["oldPassword", "newPassword"],
+                "properties": {
+                  "oldPassword": { "type": "string" },
+                  "newPassword": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password updated successfully" }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": ["User Profile"],
+        "summary": "Get authenticated user profile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Profile retrieved successfully" }
+        }
+      },
+      "patch": {
+        "tags": ["User Profile"],
+        "summary": "Update authenticated user profile",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "address": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile updated successfully" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["User Profile"],
+        "summary": "Admin view all users with filters and pagination",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "searchTerm", "in": "query", "schema": { "type": "string" } },
+          { "name": "role", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Users retrieved successfully" }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get active service categories",
+        "responses": {
+          "200": { "description": "Categories retrieved successfully" }
+        }
+      },
+      "post": {
+        "tags": ["Categories"],
+        "summary": "Admin create service category",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "HVAC and AC Repair" },
+                  "description": { "type": "string" },
+                  "icon": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Category created successfully" }
+        }
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get category by id",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Category retrieved successfully" }
+        }
+      },
+      "patch": {
+        "tags": ["Categories"],
+        "summary": "Admin update category",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "isActive": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Category updated successfully" }
+        }
+      },
+      "delete": {
+        "tags": ["Categories"],
+        "summary": "Admin soft delete category",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Category deleted successfully" }
+        }
+      }
+    },
+    "/technicians": {
+      "get": {
+        "tags": ["Technicians"],
+        "summary": "Search and filter technicians by city, skill, availability and rating",
+        "parameters": [
+          { "name": "searchTerm", "in": "query", "schema": { "type": "string" } },
+          { "name": "city", "in": "query", "schema": { "type": "string" } },
+          { "name": "skill", "in": "query", "schema": { "type": "string" } },
+          { "name": "isAvailable", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Technicians retrieved successfully" }
+        }
+      }
+    },
+    "/technicians/{id}": {
+      "get": {
+        "tags": ["Technicians"],
+        "summary": "Get technician detailed profile with schedule and ratings",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Technician retrieved successfully" }
+        }
+      }
+    },
+    "/technicians/availability": {
+      "put": {
+        "tags": ["Technicians"],
+        "summary": "Technician update weekly availability slots",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["slots"],
+                "properties": {
+                  "slots": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "dayOfWeek": { "type": "integer", "example": 6 },
+                        "startTime": { "type": "string", "example": "09:00" },
+                        "endTime": { "type": "string", "example": "18:00" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Availability slots updated successfully" }
+        }
+      }
+    },
+    "/technicians/status": {
+      "patch": {
+        "tags": ["Technicians"],
+        "summary": "Technician toggle availability status",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["isAvailable"],
+                "properties": {
+                  "isAvailable": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Technician status updated successfully" }
+        }
+      }
+    },
+    "/service-requests": {
+      "post": {
+        "tags": ["Service Requests"],
+        "summary": "Customer submit service request",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description", "categoryId", "address", "city", "preferredDate", "preferredTime", "contactPhone"],
+                "properties": {
+                  "title": { "type": "string", "example": "Central AC cooling failure" },
+                  "description": { "type": "string", "example": "Compressor running but no cooling inside floor 3" },
+                  "categoryId": { "type": "string" },
+                  "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"], "example": "HIGH" },
+                  "address": { "type": "string", "example": "Road 11, Banani" },
+                  "city": { "type": "string", "example": "Dhaka" },
+                  "preferredDate": { "type": "string", "example": "2026-11-26" },
+                  "preferredTime": { "type": "string", "example": "10:00" },
+                  "contactPhone": { "type": "string", "example": "01722334455" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Service request submitted successfully" }
+        }
+      },
+      "get": {
+        "tags": ["Service Requests"],
+        "summary": "List service requests (Customer sees own, Admin sees all)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "priority", "in": "query", "schema": { "type": "string" } },
+          { "name": "categoryId", "in": "query", "schema": { "type": "string" } },
+          { "name": "city", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Service requests retrieved successfully" }
+        }
+      }
+    },
+    "/service-requests/{id}": {
+      "get": {
+        "tags": ["Service Requests"],
+        "summary": "Get service request by id",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Service request details retrieved successfully" }
+        }
+      },
+      "patch": {
+        "tags": ["Service Requests"],
+        "summary": "Update service request details or status",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "status": { "type": "string", "enum": ["PENDING", "APPROVED", "ASSIGNED", "CANCELLED", "REJECTED"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Service request updated successfully" }
+        }
+      }
+    },
+    "/service-requests/{id}/cancel": {
+      "post": {
+        "tags": ["Service Requests"],
+        "summary": "Cancel service request",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Service request cancelled successfully" }
+        }
+      }
+    },
+    "/work-orders/assign": {
+      "post": {
+        "tags": ["Work Orders"],
+        "summary": "Admin assign technician and schedule work order with conflict check",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["serviceRequestId", "technicianId", "scheduledDate", "startTime", "endTime"],
+                "properties": {
+                  "serviceRequestId": { "type": "string" },
+                  "technicianId": { "type": "string" },
+                  "scheduledDate": { "type": "string", "example": "2026-11-26" },
+                  "startTime": { "type": "string", "example": "10:00" },
+                  "endTime": { "type": "string", "example": "12:00" },
+                  "adminNotes": { "type": "string", "example": "Urgent repair request" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Technician assigned and work order created successfully" },
+          "409": { "description": "Technician schedule conflict detected" }
+        }
+      }
+    },
+    "/work-orders": {
+      "get": {
+        "tags": ["Work Orders"],
+        "summary": "List work orders according to user role",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "scheduledDate", "in": "query", "schema": { "type": "string" } },
+          { "name": "technicianId", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Work orders retrieved successfully" }
+        }
+      }
+    },
+    "/work-orders/{id}": {
+      "get": {
+        "tags": ["Work Orders"],
+        "summary": "Get work order details by id",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Work order details retrieved successfully" }
+        }
+      }
+    },
+    "/work-orders/{id}/status": {
+      "patch": {
+        "tags": ["Work Orders"],
+        "summary": "Update work order status (SCHEDULED, EN_ROUTE, IN_PROGRESS, COMPLETED)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["SCHEDULED", "EN_ROUTE", "IN_PROGRESS", "COMPLETED", "CANCELLED"] },
+                  "technicianNotes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Work order status updated successfully" }
+        }
+      }
+    },
+    "/service-reports": {
+      "post": {
+        "tags": ["Service Reports"],
+        "summary": "Technician submit job completion report",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["workOrderId", "problemFound", "workSummary", "laborHours"],
+                "properties": {
+                  "workOrderId": { "type": "string" },
+                  "problemFound": { "type": "string", "example": "Capacitor blown and contactor burnt" },
+                  "workSummary": { "type": "string", "example": "Installed 45uF running capacitor and new contactor" },
+                  "partsUsed": { "type": "string", "example": "45uF Capacitor, 2-pole Contactor" },
+                  "laborHours": { "type": "number", "example": 2.5 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Service report submitted successfully" }
+        }
+      }
+    },
+    "/service-reports/work-order/{workOrderId}": {
+      "get": {
+        "tags": ["Service Reports"],
+        "summary": "Get service report for work order",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "workOrderId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Service report retrieved successfully" }
+        }
+      }
+    },
+    "/invoices/generate": {
+      "post": {
+        "tags": ["Invoices"],
+        "summary": "Admin generate invoice for completed work order",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["workOrderId", "laborCost"],
+                "properties": {
+                  "workOrderId": { "type": "string" },
+                  "laborCost": { "type": "number", "example": 1500 },
+                  "partsCost": { "type": "number", "example": 800 },
+                  "tax": { "type": "number", "example": 100 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Invoice generated successfully" }
+        }
+      }
+    },
+    "/invoices": {
+      "get": {
+        "tags": ["Invoices"],
+        "summary": "List invoices with pagination and status filter",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "searchTerm", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Invoices retrieved successfully" }
+        }
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "tags": ["Invoices"],
+        "summary": "Get invoice details by id",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Invoice retrieved successfully" }
+        }
+      }
+    },
+    "/payments/initiate": {
+      "post": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "Customer initiate SSLCommerz checkout session for invoice",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["invoiceId"],
+                "properties": {
+                  "invoiceId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Payment session initiated successfully" }
+        }
+      }
+    },
+    "/payments/ssl/success": {
+      "post": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "SSLCommerz success redirect handler",
+        "responses": {
+          "200": { "description": "Payment verified and completed successfully" }
+        }
+      }
+    },
+    "/payments/ssl/fail": {
+      "post": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "SSLCommerz failure callback",
+        "responses": {
+          "200": { "description": "Payment marked as failed" }
+        }
+      }
+    },
+    "/payments/ssl/cancel": {
+      "post": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "SSLCommerz cancellation callback",
+        "responses": {
+          "200": { "description": "Payment marked as cancelled" }
+        }
+      }
+    },
+    "/payments/ssl/ipn": {
+      "post": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "SSLCommerz Instant Payment Notification (IPN) webhook",
+        "responses": {
+          "200": { "description": "IPN processed successfully" }
+        }
+      }
+    },
+    "/payments/my-history": {
+      "get": {
+        "tags": ["Payments (SSLCommerz)"],
+        "summary": "Customer view payment transaction history",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Payment history retrieved successfully" }
+        }
+      }
+    },
+    "/reviews": {
+      "post": {
+        "tags": ["Reviews"],
+        "summary": "Customer review completed work order and technician",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["workOrderId", "rating"],
+                "properties": {
+                  "workOrderId": { "type": "string" },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5, "example": 5 },
+                  "comment": { "type": "string", "example": "Fast and clean work. Highly recommended." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Review submitted successfully" }
+        }
+      }
+    },
+    "/reviews/technician/{technicianId}": {
+      "get": {
+        "tags": ["Reviews"],
+        "summary": "Get reviews for a technician",
+        "parameters": [{ "name": "technicianId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Reviews retrieved successfully" }
+        }
+      }
+    },
+    "/admin/dashboard-stats": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get aggregate system dashboard metrics",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Dashboard statistics retrieved successfully" }
+        }
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get paginated system audit logs",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "action", "in": "query", "schema": { "type": "string" } },
+          { "name": "entity", "in": "query", "schema": { "type": "string" } },
+          { "name": "userId", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Audit logs retrieved successfully" }
+        }
+      }
+    },
+    "/admin/users/{id}/status": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Admin update user status (ACTIVE / SUSPENDED)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["ACTIVE", "SUSPENDED"], "example": "ACTIVE" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User status updated successfully" }
+        }
+      }
+    }
+  }
+}
