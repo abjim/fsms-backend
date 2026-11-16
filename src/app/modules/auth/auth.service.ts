@@ -11,7 +11,8 @@ import {
 } from './auth.interface';
 
 const registerUser = async (payload: TRegisterPayload) => {
-  const email = payload.email.toLowerCase();
+  const email = payload.email.toLowerCase().trim();
+  const phone = payload.phone?.trim();
 
   const isUserExist = await prisma.user.findUnique({
     where: { email },
@@ -29,11 +30,11 @@ const registerUser = async (payload: TRegisterPayload) => {
   const newUser = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
-        name: payload.name,
+        name: payload.name.trim(),
         email,
         password: hashedPassword,
-        phone: payload.phone,
-        address: payload.address,
+        phone,
+        address: payload.address?.trim(),
         role: payload.role,
       },
       select: {
