@@ -33,6 +33,9 @@ const getAllTechnicians = async (params: any, options: any) => {
     andConditions.push({ isAvailable: isAvailable === 'true' });
   }
 
+  const sortField = sortBy || 'avgRating';
+  const sortDirection = sortOrder || 'desc';
+
   const whereConditions: Prisma.TechnicianProfileWhereInput = {
     AND: andConditions,
   };
@@ -42,7 +45,7 @@ const getAllTechnicians = async (params: any, options: any) => {
       where: whereConditions,
       skip,
       take: limit,
-      orderBy: { [sortBy]: sortOrder },
+      orderBy: { [sortField]: sortDirection },
       include: {
         user: {
           select: {
