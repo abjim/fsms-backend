@@ -242,7 +242,8 @@ const cancelServiceRequest = async (id: string, user: TAuthUser) => {
 
   if (
     request.status === ServiceRequestStatus.ASSIGNED ||
-    request.status === ServiceRequestStatus.CANCELLED
+    request.status === ServiceRequestStatus.CANCELLED ||
+    request.status === ServiceRequestStatus.REJECTED
   ) {
     throw new AppError(400, `Cannot cancel request in ${request.status} status`);
   }
