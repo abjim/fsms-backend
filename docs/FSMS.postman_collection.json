@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Field Service Management System (FSMS)",
-    "description": "Comprehensive Postman collection for the FSMS REST API backend.",
+    "description": "Comprehensive Postman collection for the FSMS REST API backend with full RBAC authentication, dispatching, and SSLCommerz payment flows.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
