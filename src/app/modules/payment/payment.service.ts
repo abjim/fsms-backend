@@ -65,6 +65,10 @@ const initiatePayment = async (customerId: string, invoiceId: string) => {
 const handleSuccessCallback = async (callbackData: any) => {
   const { tran_id, val_id, amount } = callbackData;
 
+  if (!tran_id) {
+    throw new AppError(400, 'Transaction ID is missing from payment callback');
+  }
+
   const payment = await prisma.payment.findUnique({
     where: { transactionId: tran_id },
     include: { invoice: true },
