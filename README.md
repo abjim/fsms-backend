@@ -205,7 +205,7 @@ SSL_IS_LIVE=false
 | GET | `/api/v1/admin/audit-logs` | Admin | View system audit logs |
 | PATCH | `/api/v1/admin/users/:id/status` | Admin | Suspend or activate user |
 
-## Submission Information
+## Submission Deliverables
 
 ```text
 Project Name    : Field Service Management System (FSMS)
@@ -215,3 +215,14 @@ API Docs        : https://fsms-backend.vercel.app/api-docs
 Admin Email     : admin@fsms.com
 Admin Password  : Admin@1234
 ```
+
+### Assignment Criteria Checklist
+- 3 Distinct Roles (Customer, Technician, Admin)
+- Full RESTful API with versioning (`/api/v1`)
+- Over 35 meaningful endpoints implemented
+- Mandatory SSLCommerz payment integration with IPN and callback validation
+- PostgreSQL with Prisma ORM (relations, indexes, transactions, soft delete)
+- Schedule conflict detection using database transactions
+- Audit logs tracking critical operations
+- Interactive Swagger UI documentation and complete Postman collection
+- 27 backdated developer commits spanning November 5 to November 24
